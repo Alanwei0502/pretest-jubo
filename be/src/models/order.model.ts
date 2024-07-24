@@ -7,6 +7,13 @@ export class OrderModel {
       where: {
         patientId,
       },
+      select: {
+        id: true,
+        message: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
     });
 
     return orders;

@@ -5,8 +5,12 @@ import { PatientModel } from '../models/patient.model';
 export class PatientController {
   static async getPatients(req: Request, res: Response, next: NextFunction) {
     try {
-      const patients = await PatientModel.getPatients();
-      return res.status(StatusCodes.OK).send(patients);
+      const { name = '' } = req.query;
+      const patients = await PatientModel.getPatients(name as string);
+      return res.status(StatusCodes.OK).send({
+        success: true,
+        data: patients,
+      });
     } catch (error) {
       next(error);
     }
@@ -16,7 +20,10 @@ export class PatientController {
     try {
       const { name } = req.body;
       const patient = await PatientModel.createPatient(name);
-      return res.status(StatusCodes.CREATED).send(patient);
+      return res.status(StatusCodes.CREATED).send({
+        success: true,
+        data: patient,
+      });
     } catch (error) {
       next(error);
     }
@@ -27,7 +34,10 @@ export class PatientController {
       const { id } = req.params;
       const { name } = req.body;
       const patient = await PatientModel.updatePatient(id, name);
-      return res.status(StatusCodes.OK).send(patient);
+      return res.status(StatusCodes.OK).send({
+        success: true,
+        data: patient,
+      });
     } catch (error) {
       next(error);
     }
@@ -37,7 +47,10 @@ export class PatientController {
     try {
       const { id } = req.params;
       await PatientModel.deletePatient(id);
-      return res.status(StatusCodes.NO_CONTENT).send();
+      return res.status(StatusCodes.NO_CONTENT).send({
+        success: true,
+        data: null,
+      });
     } catch (error) {
       next(error);
     }

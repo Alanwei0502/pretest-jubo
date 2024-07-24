@@ -5,9 +5,12 @@ import { OrderModel } from '../models/order.model';
 export class OrderController {
   static async getOrders(req: Request, res: Response, next: NextFunction) {
     try {
-      const { patientId } = req.params;
-      const orders = await OrderModel.getOrders(patientId);
-      return res.status(StatusCodes.OK).send(orders);
+      const { patientId } = req.query;
+      const orders = await OrderModel.getOrders(patientId as string);
+      return res.status(StatusCodes.OK).send({
+        success: true,
+        data: orders,
+      });
     } catch (error) {
       next(error);
     }
@@ -17,7 +20,10 @@ export class OrderController {
     try {
       const { patientId, message } = req.body;
       const order = await OrderModel.createOrder(patientId, message);
-      return res.status(StatusCodes.CREATED).send(order);
+      return res.status(StatusCodes.CREATED).send({
+        success: true,
+        data: order,
+      });
     } catch (error) {
       next(error);
     }
@@ -28,7 +34,10 @@ export class OrderController {
       const { id } = req.params;
       const { message } = req.body;
       const order = await OrderModel.updateOrder(id, message);
-      return res.status(StatusCodes.OK).send(order);
+      return res.status(StatusCodes.OK).send({
+        success: true,
+        data: order,
+      });
     } catch (error) {
       next(error);
     }

@@ -5,7 +5,7 @@ const orderRouter = Router();
 
 orderRouter.get('/', OrderController.getOrders);
 orderRouter.post('/', OrderController.createOrder);
-orderRouter.put('/:id', OrderController.updateOrder);
+orderRouter.patch('/:id', OrderController.updateOrder);
 orderRouter.delete('/:id', OrderController.deleteOrder);
 
 export { orderRouter };

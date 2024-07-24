@@ -2,10 +2,19 @@ import { Patient } from '@prisma/client';
 import { prismaClient } from '../utils/prismaClient.utils';
 
 export class PatientModel {
-  static async getPatients() {
+  static async getPatients(name: Patient['name']) {
     const patients = await prismaClient.patient.findMany({
-      include: {
-        Order: true,
+      where: {
+        name: {
+          contains: name,
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
       },
     });
 
@@ -18,7 +27,6 @@ export class PatientModel {
         name,
       },
     });
-
     return patient;
   }
 
@@ -33,8 +41,10 @@ export class PatientModel {
   }
 
   static async deletePatient(id: string) {
-    await prismaClient.patient.delete({
+    const patient = await prismaClient.patient.delete({
       where: { id },
     });
+
+    return patient.id;
   }
 }
