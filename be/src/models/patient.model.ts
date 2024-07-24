@@ -14,7 +14,7 @@ export class PatientModel {
         name: true,
       },
       orderBy: {
-        createdAt: 'desc',
+        id: 'desc',
       },
     });
 

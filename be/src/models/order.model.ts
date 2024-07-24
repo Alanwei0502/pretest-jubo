@@ -12,7 +12,7 @@ export class OrderModel {
         message: true,
       },
       orderBy: {
-        createdAt: 'desc',
+        id: 'desc',
       },
     });
 

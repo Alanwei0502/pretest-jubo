@@ -76,8 +76,8 @@ const OrdersDialog: React.FC<PatientDialogProps> = (props) => {
     if (!newOrder || !createOrderInputRef.current || !viewPatient) return;
     const res = await OrderApi.createOrder(viewPatient.id, createOrderInputRef.current.value);
     if (res.success) {
+      await getOrders();
       setNewOrder(undefined);
-      getOrders();
     } else {
       console.error(res.error);
     }
@@ -96,8 +96,8 @@ const OrdersDialog: React.FC<PatientDialogProps> = (props) => {
     if (!editOrder || !updateOrderInputRef.current) return;
     const res = await OrderApi.updateOrder(editOrder.id, updateOrderInputRef.current.value);
     if (res.success) {
+      await getOrders();
       setEditOrder(undefined);
-      getOrders();
     } else {
       console.error(res.error);
     }
