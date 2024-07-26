@@ -54,6 +54,7 @@ function App() {
   }, [getPatients]);
 
   const handleSearchPatient = () => {
+    if (isLoading) return;
     getPatients();
   };
 
