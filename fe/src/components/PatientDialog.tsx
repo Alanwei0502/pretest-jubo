@@ -16,12 +16,12 @@ import Input from '@mui/material/Input';
 import AddIcon from '@mui/icons-material/Add';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
-import { Paper, Popover, Typography } from '@mui/material';
+import { LinearProgress, Paper, Popover, Typography } from '@mui/material';
 // import { PatientApi } from '../apis/patient.api';
 
 interface PatientDialogProps {
   viewPatient?: IPatient;
-  setViewPatient: React.Dispatch<React.SetStateAction<IPatient | undefined>>
+  setViewPatient: React.Dispatch<React.SetStateAction<IPatient | undefined>>;
   getPatients: () => Promise<void>;
 }
 
@@ -34,22 +34,23 @@ const OrdersDialog: React.FC<PatientDialogProps> = (props) => {
   const [newOrder, setNewOrder] = useState<Pick<IOrder, 'message'>>();
   const [editOrder, setEditOrder] = useState<IOrder>();
   const [deleteOrder, setDeleteOrder] = useState<IOrder>();
-  const [anchorDeleteOrderEl, setAnchorDeleteOrderEl] = useState<HTMLButtonElement | null>(null);
+  const [anchorDeleteOrderEl, setAnchorDeleteOrderEl] =
+    useState<HTMLButtonElement | null>(null);
   // const [anchorDeletePatientEl, setAnchorDeletePatientEl] = useState<HTMLButtonElement | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Get Orders
-  const getOrders = useCallback(
-    async () => {
-      if (!viewPatient) return;
-      const res = await OrderApi.getOrders(viewPatient.id);
-      if (res.success) {
-        setOrders(res?.data ?? []);
-      } else {
-        console.error(res.error);
-      }
-    },
-    [viewPatient],
-  )
+  const getOrders = useCallback(async () => {
+    if (!viewPatient) return;
+    setIsLoading(true);
+    const res = await OrderApi.getOrders(viewPatient.id);
+    if (res.success) {
+      setOrders(res?.data ?? []);
+    } else {
+      console.error(res.error);
+    }
+    setIsLoading(false);
+  }, [viewPatient]);
 
   const handleCloseDialog = () => {
     setViewPatient(undefined);
@@ -60,67 +61,81 @@ const OrdersDialog: React.FC<PatientDialogProps> = (props) => {
     setAnchorDeleteOrderEl(null);
     // setAnchorDeletePatientEl(null);
     getPatients();
-  }
-
+  };
 
   // Create Order Handlers
   const handleOpenCreateOrderInput = () => {
     setNewOrder({ message: '' });
-  }
+  };
 
   const handleCancelCreateOrder = () => {
     setNewOrder(undefined);
-  }
+  };
 
   const handleCreateOrder = async () => {
     if (!newOrder || !createOrderInputRef.current || !viewPatient) return;
-    const res = await OrderApi.createOrder(viewPatient.id, createOrderInputRef.current.value);
+    setIsLoading(true);
+    const res = await OrderApi.createOrder(
+      viewPatient.id,
+      createOrderInputRef.current.value
+    );
     if (res.success) {
       await getOrders();
       setNewOrder(undefined);
     } else {
       console.error(res.error);
     }
-  }
+    setIsLoading(false);
+  };
 
   // Edit Order Handlers
   const handleEditOrder = (order: IOrder) => {
-    setEditOrder(order)
-  }
+    setEditOrder(order);
+  };
 
   const handleCancelEditOrder = () => {
-    setEditOrder(undefined)
-  }
+    setEditOrder(undefined);
+  };
 
   const handleUpdateOrder = async () => {
     if (!editOrder || !updateOrderInputRef.current) return;
-    const res = await OrderApi.updateOrder(editOrder.id, updateOrderInputRef.current.value);
+    setIsLoading(true);
+    const res = await OrderApi.updateOrder(
+      editOrder.id,
+      updateOrderInputRef.current.value
+    );
     if (res.success) {
       await getOrders();
       setEditOrder(undefined);
     } else {
       console.error(res.error);
     }
-  }
+    setIsLoading(false);
+  };
 
   // Delete Order Handlers
-  const handleOpenConfirmDeleteOrderPopover = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>, order: IOrder) => {
+  const handleOpenConfirmDeleteOrderPopover = async (
+    e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+    order: IOrder
+  ) => {
     setAnchorDeleteOrderEl(e.currentTarget);
     setDeleteOrder(order);
-  }
+  };
 
   const handleCloseConfirmDeleteOrderPopover = () => {
     setAnchorDeleteOrderEl(null);
     setDeleteOrder(undefined);
-  }
+  };
 
   const handleDeleteOrder = async () => {
     if (!deleteOrder) return;
+    setIsLoading(true);
     await OrderApi.deleteOrder(deleteOrder.id);
     setAnchorDeleteOrderEl(null);
     setDeleteOrder(undefined);
     getOrders();
-  }
+    setIsLoading(false);
+  };
 
   // Delete Patient Handlers
   // const handleOpenConfirmDeletePatientPopover = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
@@ -139,73 +154,133 @@ const OrdersDialog: React.FC<PatientDialogProps> = (props) => {
 
   useEffect(() => {
     getOrders();
-  }, [getOrders])
+  }, [getOrders]);
 
   return (
     <>
-      <Dialog open={Boolean(viewPatient)} onClose={handleCloseDialog} scroll='paper' aria-labelledby="viewPatient orders dialog" fullWidth>
-        <DialogTitle display='flex' justifyContent='space-between' alignItems='center'>
+      <Dialog
+        open={Boolean(viewPatient)}
+        onClose={handleCloseDialog}
+        scroll='paper'
+        aria-labelledby='viewPatient orders dialog'
+        fullWidth
+      >
+        <LinearProgress sx={{ visibility: isLoading ? 'visible' : 'hidden' }} />
+        <DialogTitle
+          display='flex'
+          justifyContent='space-between'
+          alignItems='center'
+        >
           住民資訊
         </DialogTitle>
         <DialogContent>
-          <Paper sx={{ display: 'flex', flexDirection: 'column', gap: 1, p: 1, mb: 2 }}>
+          <Paper
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 1,
+              p: 1,
+              mb: 2,
+            }}
+          >
             <Typography>姓名：{viewPatient?.name}</Typography>
           </Paper>
 
-          <Typography variant='h6' display='flex' justifyContent='space-between'>
+          <Typography
+            variant='h6'
+            display='flex'
+            justifyContent='space-between'
+          >
             醫囑
             <Box display='flex' gap={1}>
               {newOrder ? (
                 <>
                   <Button onClick={handleCancelCreateOrder}>取消</Button>
-                  <Button onClick={handleCreateOrder} color='success'>新增</Button>
+                  <Button onClick={handleCreateOrder} color='success'>
+                    新增
+                  </Button>
                 </>
               ) : (
-                <Button startIcon={<AddIcon />} onClick={handleOpenCreateOrderInput}>新增醫囑</Button>
+                <Button
+                  startIcon={<AddIcon />}
+                  onClick={handleOpenCreateOrderInput}
+                >
+                  新增醫囑
+                </Button>
               )}
             </Box>
           </Typography>
           <List>
             {newOrder && (
               <ListItem key='new order'>
-                <Input fullWidth placeholder='請輸入醫囑內容' inputRef={createOrderInputRef} />
+                <Input
+                  fullWidth
+                  placeholder='請輸入醫囑內容'
+                  inputRef={createOrderInputRef}
+                />
               </ListItem>
             )}
-            {orders.length > 0 ?
+            {orders.length > 0 ? (
               orders.map((o, i) => (
                 <ListItem key={o.id} divider={i !== orders.length - 1}>
-                  {editOrder && editOrder.id === o.id
-                    ? (
-                      <>
-                        <Input fullWidth autoFocus defaultValue={editOrder.message} inputRef={updateOrderInputRef} />
-                        <Box display='flex'>
-                          <IconButton aria-label='confirm update' edge='end' onClick={handleUpdateOrder} sx={{ mr: .5 }} color='success'>
-                            <CheckIcon />
-                          </IconButton>
-                          <IconButton aria-label='cancel update' edge='end' onClick={handleCancelEditOrder}>
-                            <CloseIcon />
-                          </IconButton>
-                        </Box>
-                      </>
-                    )
-                    : (
-                      <>
-                        <ListItemText>{o.message}</ListItemText>
-                        <Box display='flex'>
-                          <IconButton aria-label='edit order' edge='end' onClick={() => handleEditOrder(o)} sx={{ mr: .5 }}>
-                            <EditIcon />
-                          </IconButton>
-                          <IconButton aria-label='delete order' edge='end' onClick={(e) => handleOpenConfirmDeleteOrderPopover(e, o)}>
-                            <DeleteIcon />
-                          </IconButton>
-                        </Box>
-                      </>
-                    )
-                  }
+                  {editOrder && editOrder.id === o.id ? (
+                    <>
+                      <Input
+                        fullWidth
+                        autoFocus
+                        defaultValue={editOrder.message}
+                        inputRef={updateOrderInputRef}
+                      />
+                      <Box display='flex'>
+                        <IconButton
+                          aria-label='confirm update'
+                          edge='end'
+                          onClick={handleUpdateOrder}
+                          sx={{ mr: 0.5 }}
+                          color='success'
+                        >
+                          <CheckIcon />
+                        </IconButton>
+                        <IconButton
+                          aria-label='cancel update'
+                          edge='end'
+                          onClick={handleCancelEditOrder}
+                        >
+                          <CloseIcon />
+                        </IconButton>
+                      </Box>
+                    </>
+                  ) : (
+                    <>
+                      <ListItemText>{o.message}</ListItemText>
+                      <Box display='flex'>
+                        <IconButton
+                          aria-label='edit order'
+                          edge='end'
+                          onClick={() => handleEditOrder(o)}
+                          sx={{ mr: 0.5 }}
+                        >
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton
+                          aria-label='delete order'
+                          edge='end'
+                          onClick={(e) =>
+                            handleOpenConfirmDeleteOrderPopover(e, o)
+                          }
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </Box>
+                    </>
+                  )}
                 </ListItem>
               ))
-              : <Typography textAlign='center' color='GrayText'>無醫囑</Typography>
-            }
+            ) : (
+              <Typography textAlign='center' color='GrayText'>
+                無醫囑
+              </Typography>
+            )}
             <Popover
               open={Boolean(anchorDeleteOrderEl)}
               anchorEl={anchorDeleteOrderEl}
@@ -217,8 +292,12 @@ const OrdersDialog: React.FC<PatientDialogProps> = (props) => {
             >
               <Typography sx={{ p: 2 }}>確認刪除此醫囑？</Typography>
               <Box textAlign='right'>
-                <Button onClick={handleCloseConfirmDeleteOrderPopover}>取消</Button>
-                <Button onClick={handleDeleteOrder} color='error'>確認</Button>
+                <Button onClick={handleCloseConfirmDeleteOrderPopover}>
+                  取消
+                </Button>
+                <Button onClick={handleDeleteOrder} color='error'>
+                  確認
+                </Button>
               </Box>
             </Popover>
           </List>
@@ -244,7 +323,7 @@ const OrdersDialog: React.FC<PatientDialogProps> = (props) => {
         </DialogActions>
       </Dialog>
     </>
-  )
-}
+  );
+};
 
-export default OrdersDialog
+export default OrdersDialog;
