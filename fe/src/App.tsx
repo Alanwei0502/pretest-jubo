@@ -96,6 +96,7 @@ function App() {
           variant='contained'
           startIcon={<SearchIcon />}
           onClick={handleSearchPatient}
+          disabled={isLoading}
         >
           搜尋
         </Button>
