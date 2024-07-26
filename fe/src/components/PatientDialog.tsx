@@ -28,7 +28,6 @@ interface PatientDialogProps {
 const OrdersDialog: React.FC<PatientDialogProps> = (props) => {
   const { viewPatient, setViewPatient, getPatients } = props;
 
-  const createOrderInputRef = useRef<HTMLInputElement | null>(null);
   const updateOrderInputRef = useRef<HTMLInputElement | null>(null);
   const [orders, setOrders] = useState<IOrder[]>([]);
   const [newOrder, setNewOrder] = useState<Pick<IOrder, 'message'>>();
@@ -73,12 +72,9 @@ const OrdersDialog: React.FC<PatientDialogProps> = (props) => {
   };
 
   const handleCreateOrder = async () => {
-    if (!newOrder || !createOrderInputRef.current || !viewPatient) return;
+    if (!newOrder?.message || !viewPatient) return;
     setIsLoading(true);
-    const res = await OrderApi.createOrder(
-      viewPatient.id,
-      createOrderInputRef.current.value
-    );
+    const res = await OrderApi.createOrder(viewPatient.id, newOrder.message);
     if (res.success) {
       await getOrders();
       setNewOrder(undefined);
@@ -196,7 +192,11 @@ const OrdersDialog: React.FC<PatientDialogProps> = (props) => {
               {newOrder ? (
                 <>
                   <Button onClick={handleCancelCreateOrder}>取消</Button>
-                  <Button onClick={handleCreateOrder} color='success'>
+                  <Button
+                    onClick={handleCreateOrder}
+                    color='success'
+                    disabled={!newOrder.message}
+                  >
                     新增
                   </Button>
                 </>
@@ -216,7 +216,7 @@ const OrdersDialog: React.FC<PatientDialogProps> = (props) => {
                 <Input
                   fullWidth
                   placeholder='請輸入醫囑內容'
-                  inputRef={createOrderInputRef}
+                  onChange={(e) => setNewOrder({ message: e.target.value })}
                 />
               </ListItem>
             )}
